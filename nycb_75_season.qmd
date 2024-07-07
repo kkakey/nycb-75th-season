@@ -1,0 +1,464 @@
+---
+title: ""
+format:
+  html:
+    embed-resources: true
+editor: visual
+execute:
+  echo: false
+  message: false
+  warning: false
+fontcolor: white
+---
+
+```{=html}
+<!-- <link rel="preconnect" href="https://fonts.googleapis.com"> -->
+<!-- <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> -->
+<!-- <link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet"> -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+<style>
+  <!-- body { -->
+  <!-- background-color: #212020; -->
+  <!-- background-image: url("gradient.png"); -->
+  <!-- background-size: cover; -->
+  <!-- background-repeat: no-repeat; -->
+  background: rgb(0,0,0);
+  background: linear-gradient(rgba(0,0,0,1) .01%, rgba(113,114,119,1) 100%);
+  font-family: "Trirong", serif;
+}
+</style>
+```
+<!-- :::{.right} -->
+
+<!-- ![](nycb-logo-dark.jpeg){width="55mm"} -->
+
+<!-- ::: -->
+
+::: hid
+::: right
+<img src="nycb-logo-dark.jpeg" alt="New York City Ballet Official logo" style="
+    width: 55mm;
+"/>
+:::
+
+<h1 style="padding-top: 50px;">
+
+New York City Ballet's 75th Season
+
+</h1>
+
+```{=html}
+<h2 style="
+    padding-top: -60px;
+    padding-bottom: 5px;
+">
+```
+2023-2024
+
+</h2>
+:::
+
+<br>
+
+::: fadein
+New York City Ballet celebrated its 75th season from Fall 2023 to Spring 2024. \[SUMMARY OF THE COMPANY\] \[OTHER THINGS THEY DID TO CELEBRATE\]
+
+Explore the repertory performed in this celebratory season in the company's history.
+:::
+
+<br>
+
+```{r load-packages}
+library(dplyr)
+library(readr)
+library(stringr)
+library(reactable)
+library(htmltools)
+library(reactablefmtr)
+```
+
+```{r read-data}
+rep_details <- read_csv('./output_data/rep_detail.csv')
+season <- 
+  list.files(path = './raw_data/', pattern = "\\.csv$", full.names=TRUE) %>%
+  rlang::set_names(str_extract(basename(.), 'Winter|Spring|Fall')) %>%
+  purrr::map_dfr(~read_csv(.) %>% 
+                   mutate(repertory = coalesce(repertory, 
+                                               snakecase::to_sentence_case(`program name`))), 
+                 .id = "season") 
+
+season <- 
+  season %>%
+  mutate(date = as.Date(paste0(date, '-', ifelse(season=="Fall", '2023', '2024')), "%d-%b-%Y"))
+
+# expand out program
+expand_dets <-
+  season %>%
+  mutate(repertory = strsplit(repertory, split=', ', fixed=TRUE)) %>%
+  tidyr::unnest(c(repertory)) %>%
+  mutate(repertory = coalesce(repertory, snakecase::to_sentence_case(`program name`)),
+         rep = stringr::str_replace_all(gsub("[.()’]", "",  repertory), " |/", "-"),
+         #exceptions
+         rep = case_when(
+           rep == 'Errante' ~ 'errante-formerly-titled-tzigane',
+           rep == 'Dig-the-Say' ~ 'new-j-peck',
+           rep == 'Bitter-Earth' ~ 'this-bitter-earth',
+           rep == 'Scenes-de-Ballet' ~ 'scenes-de-ballet-wheeldon',
+           rep == 'The-Concert' ~ 'the-concert-or-the-perils-of-everybody',
+           T ~ rep
+         )
+  ) %>%
+  # join repetory details
+  left_join(rep_details, by='rep') %>%
+  # count number of times a rep was performed
+  group_by(repertory) %>%
+  mutate(perf_count = n(), all_dates = paste0(date, collapse = ", ")) %>% ungroup() %>%
+  transmute(
+    Repertory = repertory,
+    Choreographer=choreography,
+    Description = description_short,
+    # `Dates` = perf_count,
+    # Season = season,
+    Date = format(date, "%b %d, %Y"),
+    all_dates,
+    play_url = 'https://open.spotify.com/embed/track/0WbMK4wrZ1wFSty9F7FCgu?utm_source=generator',
+    Music = music,
+    Composer = `music by`,
+    Length = length,
+    num_dancers,
+    
+    Premiere = format(lubridate::mdy(premiere_date), "%b %d, %Y"),
+    premiere_place,
+    `original cast`,
+    
+    costumes,
+    set,
+    lighting,
+    
+    photo_url
+    
+  ) %>%
+  slice_min(., by = 'Repertory', order_by=Date)
+
+dates_performed <- 
+  season %>%
+  select(repertory, date)
+
+### https://github.com/qagentur/table-contest-2022/blob/main/table.qmd#L111-L128
+audio_player <- function(src) {
+  # id <- '0WbMK4wrZ1wFSty9F7FCgu'
+  id <- '2FhzgJDlUsdwbHkTobLhYQ'
+  # # Control audio with a play and a pause button
+  # # Pressing play hides play button and shows pause, and the other way around
+  # str_interp('<audio id="${id}" src="${src}"></audio>
+  # <div>
+  #   <button class="music-controls play-button" id="${id}_play" onclick="
+  #     document.getElementById(\'${id}\').play();
+  #     document.getElementById(\'${id}_play\').style.display=\'none\';
+  #     document.getElementById(\'${id}_pause\').style.display=\'block\';
+  #   ">Play</button>
+  #   <button class="music-controls pause-button" id="${id}_pause" style="display:none;" onclick="
+  #     document.getElementById(\'${id}\').pause();
+  #     document.getElementById(\'${id}_pause\').style.display=\'none\';
+  #     document.getElementById(\'${id}_play\').style.display=\'block\';
+  #   ">Pause</button>
+  # </div>')
+    str_interp(glue::glue('
+              <iframe style="border-radius:12px; margin-top:10px; margin-bottom:-20px;"
+               src="https://open.spotify.com/embed/track/{id}?utm_source=generator"
+               width="60%%" height="100" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write;
+               encrypted-media; fullscreen; picture-in-picture"></iframe>'))
+}
+```
+
+::: panel-tabset
+## Preview
+
+::: grid
+::: g-col-4
+This column takes 1/3 of the page
+:::
+
+::: g-col-8
+```{r}
+ojs_define(ojs_data = expand_dets %>% select(Repertory))
+```
+
+```{ojs}
+data = transpose(ojs_data)
+
+// Create a dropdown menu 
+viewof repDropdown = Inputs.select(
+  data.map(d => d.Repertory),
+  {
+    label: "Repertory",
+    unique: true
+  }
+)
+```
+
+```{ojs}
+//| expandable: false
+html`<iframe width="600" height="400" src="https://www.youtube.com/embed/8wTkgTF6fUs?si=MohEFHe-jWutrk8_" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`
+```
+:::
+:::
+
+## Table
+
+```{r}
+options(reactable.theme = reactableTheme(
+  color = "hsl(233, 9%, 87%)",
+  backgroundColor = "hsl(233, 9%, 19%)", #121212
+  borderColor = "hsl(233, 9%, 22%)",
+  stripedColor = "hsl(233, 12%, 22%)",
+  highlightColor = "hsl(233, 12%, 24%)",
+  inputStyle = list(backgroundColor = "hsl(233, 9%, 25%)"),
+  selectStyle = list(backgroundColor = "hsl(233, 9%, 25%)"),
+  pageButtonHoverStyle = list(backgroundColor = "hsl(233, 9%, 25%)"),
+  pageButtonActiveStyle = list(backgroundColor = "hsl(233, 9%, 28%)")
+))
+
+t <- reactable(
+  class = "table",
+  searchable = TRUE,
+  showPageSizeOptions = TRUE,
+  showSortIcon = TRUE,
+  highlight = TRUE,
+  compact = TRUE,
+  fullWidth = TRUE,
+  defaultPageSize = 7,
+  pageSizeOptions = c(5, 7,16, 32, 50, 100),
+  defaultColDef = colDef(headerClass = "header colheader"),
+  expand_dets %>% select(!c(`original cast`, premiere_place, photo_url)),
+  columns = list(
+    Repertory = colDef(
+      minWidth=500, align = "center", html = TRUE,
+      cell = function(value) {
+        glue::glue('
+        {htmltools::tags$p(strong(value), class = "label_rep")}
+        { htmltools::tags$img(src = expand_dets[expand_dets$Repertory==value,]$photo_url[1], width = "350", height = "350")}
+        {audio_player(value)}'
+        )
+      }
+      # cell = function(value) {   
+      #   tag_list <- tagList(
+      #     htmltools::tags$p(strong(value), class = 'label_rep'),
+      #     htmltools::tags$img(src = expand_dets[expand_dets$Repertory==value,]$photo_url[1],
+      #                                       width = "350",
+      #                                       height = "350"),
+      #       audio_player(value)
+      #     )
+      #     as.character(tag_list)
+      #   }
+      ),
+    Choreographer = colDef(aggregate = "unique", minWidth=145, align = "center"),
+    Description = colDef(aggregate = "unique", minWidth=400, align = "center", show = FALSE),
+    Length = colDef(),
+    play_url = colDef(show = FALSE),
+    Music = colDef(),
+    Composer = colDef(),
+    num_dancers = colDef(),
+    Date = colDef(
+      details = function(index) {
+        r <- dates_performed[index,] %>% pull(repertory)
+        dates <- dates_performed %>% filter(repertory == r) %>% select(date)
+        tbl <- reactable(dates, outlined = TRUE, highlight = TRUE, fullWidth = FALSE)
+        htmltools::tagList(
+          htmltools::div(style = list(margin = "12px 45px"), tbl)
+        )
+    }),
+    all_dates = colDef(show = FALSE),
+      ### DETAILS ALL THE DATES
+    # Date = colDef(
+    #   aggregate = "count",
+    #   format = list(
+    #     aggregated = colFormat(suffix = " performances")
+    #   )
+    # ),
+    
+    # Division = colDef(aggregate = "unique"),
+    # Area = colDef(aggregate = "sum", format = colFormat(separators = TRUE)),
+    
+    
+    Premiere = colDef(minWidth=115, details = function(index) {
+      premiere <- expand_dets[index,] %>% select(Premiere, premiere_place, `original cast`)
+      tbl <- reactable(premiere, outlined = TRUE, highlight = TRUE, fullWidth = FALSE)
+      htmltools::div(style = list(margin = "12px 45px"), tbl)
+    })
+    # https://stackoverflow.com/questions/69385382/use-image-in-reactable-expandable-row
+  ),
+  bordered = TRUE,
+  details = function(index) {
+      htmltools::tags$p(expand_dets[index,]$Description)
+    }
+
+)
+```
+
+```{r}
+########### Style table ###########
+# div(
+#     br(),
+#     div(class = "title", align = "center",
+#         "Most Popular Dog Breeds of 2020"
+#         ),
+#     div(align="center", class = "img",
+#     img(src="./project_images/dog.png", 
+#         alt = "icon of cartoon dog head with small heart over its head from https://www.flaticon.com/free-icon/dog_2064847", 
+#         height=30, width=30)),
+#         div(class = "subtitle", align = "center",
+#         "A list of all American Kennel Club recognized dog breeds and their traits, ranked by popularity in 2020"
+#         ),
+#     br()
+# )
+```
+
+```{css}
+<!-- update CSS so table can be wider -->
+.reactable.html-widget.html-widget-static-bound {
+  width:1500px !important;
+  margin-left: -350px;
+}
+
+.Reactable.ReactTable.table.reactable-1i3kzw9.rt-compact {
+  width:1500px !important;
+  margin-left: -350px;
+}
+
+.cell-output-display:not(.no-overflow-x),.knitsql-table:not(.no-overflow-x) {
+    overflow-x: unset !important;
+}
+<!-- -->
+
+.nav
+
+.grid {
+  width:1200 !important;
+  margin-left: -150px;
+}
+
+.oi-ec050e-input {
+  background: black;
+  border-radius: 50px;
+  flex: 1;  
+  padding: 5px;
+}
+
+<!-- label[for="oi-ec050e-1"] { -->
+<!--   vertical-align: top; -->
+<!-- } -->
+
+.tab-content {
+  border-left: None;
+  border-right: None;
+  border-bottom: None;
+}
+
+.nav-tabs.nav-link.active {
+  color: white;
+  background-color: black;
+  border-color: black;
+}
+
+.nav-link {
+  color: white;
+}
+
+.nav-link:hover {
+    color: #121212;
+}
+
+.table {
+  border-radius: 50px;
+}
+
+.right {
+  float: right;
+  <!-- width: 300px; -->
+  <!-- padding: 10px; -->
+  <!-- position: absolute; -->
+  right: 0px;
+  top: 0px;
+  width: 55mm;
+  height: 55mm;
+}
+
+.rt-search.reactable-8dii1e {
+  margin: 10px;
+  margin-right: 50px;
+}
+
+
+.hid{
+    transition: all 3s;
+    opacity: 0;
+    filter: blur(5px);
+    transform: translateY(200px);
+}
+
+.show{
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+}
+
+.rt-tr-details {
+  inline-size: 400px;
+  overflow-wrap: break-word;
+  <!-- margin-left: -100%; -->
+  <!-- margin-right: -100%; -->
+  text-align: center;
+}
+
+.fade-out {
+    background: rgba(0,0,0,0)
+}
+
+
+.fadein {
+  opacity: 0;
+  animation: fadeIn 3s ease-out forwards;
+  display:inline-block;
+}
+
+@keyframes fadeIn{
+  to{
+    opacity: 1;
+  }
+}
+
+.label_rep {
+  padding-top: 10px;
+  margin-bottom: -1px;
+}
+```
+
+```{js}
+<!-- code for text animation -->
+<!-- https://javascript.plainenglish.io/how-to-implement-animation-on-scroll-with-vanilla-javascript-655093a38059 -->
+const hidden_elements = document.querySelectorAll('.hid')
+const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+        if(entry.isIntersecting){
+            entry.target.classList.add('show');
+        }
+        else{
+            entry.target.classList.remove('show')
+        }
+    })
+});
+
+hidden_elements.forEach(el => {
+    observer.observe(el);
+});
+```
+
+```{r}
+t
+```
+:::
+
+Footnote text
