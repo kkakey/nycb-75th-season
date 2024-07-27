@@ -12,21 +12,14 @@ fontcolor: white
 ---
 
 ```{=html}
-<!-- <link rel="preconnect" href="https://fonts.googleapis.com"> -->
-<!-- <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> -->
-<!-- <link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet"> -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
 <style>
-  <!-- body { -->
-  <!-- background-color: #212020; -->
-  <!-- background-image: url("gradient.png"); -->
-  <!-- background-size: cover; -->
-  <!-- background-repeat: no-repeat; -->
-  background: rgb(0,0,0);
-  background: linear-gradient(rgba(0,0,0,1) .01%, rgba(113,114,119,1) 100%);
-  font-family: "Trirong", serif;
+body {
+  background: linear-gradient(rgba(0,0,0,1) 30%, rgba(113,114,119,1) 100%);
+  background-attachment: fixed;
+  font-family: "Barlow", serif;
 }
 </style>
 ```
@@ -38,9 +31,11 @@ fontcolor: white
 
 ::: hid
 ::: right
+```{=html}
 <img src="nycb-logo-dark.jpeg" alt="New York City Ballet Official logo" style="
     width: 55mm;
 "/>
+```
 :::
 
 <h1 style="padding-top: 50px;">
@@ -128,19 +123,19 @@ expand_dets <-
     Composer = `music by`,
     Length = length,
     num_dancers,
-    
     Premiere = format(lubridate::mdy(premiere_date), "%b %d, %Y"),
     premiere_place,
     `original cast`,
-    
     costumes,
-    set,
+    Set = set,
     lighting,
-    
     photo_url
     
   ) %>%
-  slice_min(., by = 'Repertory', order_by=Date)
+  slice_min(., by = 'Repertory', order_by=Date, with_ties=FALSE) %>%
+  # reorder columns
+  select(Repertory, Choreographer, Date, Length, num_dancers, Premiere, Music, Set,
+         all_dates, costumes, lighting, Composer, play_url, premiere_place, `original cast`, photo_url, Description)
 
 dates_performed <- 
   season %>%
@@ -232,10 +227,10 @@ t <- reactable(
   defaultPageSize = 7,
   pageSizeOptions = c(5, 7,16, 32, 50, 100),
   defaultColDef = colDef(headerClass = "header colheader"),
-  expand_dets %>% select(!c(`original cast`, premiere_place, photo_url)),
+  expand_dets,
   columns = list(
     Repertory = colDef(
-      minWidth=500, align = "center", html = TRUE,
+      minWidth=500, align = "center", html = TRUE, sticky = "left",
       cell = function(value) {
         glue::glue('
         {htmltools::tags$p(strong(value), class = "label_rep")}
@@ -256,12 +251,14 @@ t <- reactable(
       ),
     Choreographer = colDef(aggregate = "unique", minWidth=145, align = "center"),
     Description = colDef(aggregate = "unique", minWidth=400, align = "center", show = FALSE),
-    Length = colDef(),
-    play_url = colDef(show = FALSE),
-    Music = colDef(),
-    Composer = colDef(),
-    num_dancers = colDef(),
-    Date = colDef(
+    Length = colDef(align = "center"),
+    Music = colDef(minWidth=60, cell = function(value) {''}, align = "center", details = function(index) {
+      premiere <- expand_dets[index,] %>% select(Music, Composer)
+      tbl <- reactable(premiere, outlined = TRUE, highlight = TRUE, fullWidth = FALSE)
+      htmltools::div(style = list(margin = "12px 45px"), tbl)
+    }),
+    num_dancers = colDef(name = 'Number of Dancers', align = "center"),
+    Date = colDef(name = "Performance Dates", minWidth=140, align = "center", 
       details = function(index) {
         r <- dates_performed[index,] %>% pull(repertory)
         dates <- dates_performed %>% filter(repertory == r) %>% select(date)
@@ -270,7 +267,6 @@ t <- reactable(
           htmltools::div(style = list(margin = "12px 45px"), tbl)
         )
     }),
-    all_dates = colDef(show = FALSE),
       ### DETAILS ALL THE DATES
     # Date = colDef(
     #   aggregate = "count",
@@ -283,12 +279,26 @@ t <- reactable(
     # Area = colDef(aggregate = "sum", format = colFormat(separators = TRUE)),
     
     
-    Premiere = colDef(minWidth=115, details = function(index) {
+    Premiere = colDef(minWidth=140, align = "center", details = function(index) {
       premiere <- expand_dets[index,] %>% select(Premiere, premiere_place, `original cast`)
       tbl <- reactable(premiere, outlined = TRUE, highlight = TRUE, fullWidth = FALSE)
       htmltools::div(style = list(margin = "12px 45px"), tbl)
-    })
+    }),
+    Set = colDef(minWidth=60, cell = function(value) {''}, align = "center", details = function(index) {
+      premiere <- expand_dets[index,] %>% select(costumes, Set, lighting)
+      tbl <- reactable(premiere, outlined = TRUE, highlight = TRUE, fullWidth = FALSE)
+      htmltools::div(style = list(margin = "12px 45px"), tbl)
+    }),
     # https://stackoverflow.com/questions/69385382/use-image-in-reactable-expandable-row
+    play_url = colDef(show = FALSE),
+    all_dates = colDef(show = FALSE),
+    costumes = colDef(show = FALSE),
+    lighting = colDef(show = FALSE),
+    Composer = colDef(show = FALSE),
+    premiere_place = colDef(show = FALSE),
+    `original cast` = colDef(show = FALSE),
+    `photo_url` = colDef(show = FALSE),
+    Description = colDef(show = FALSE)
   ),
   bordered = TRUE,
   details = function(index) {
@@ -319,13 +329,13 @@ t <- reactable(
 ```{css}
 <!-- update CSS so table can be wider -->
 .reactable.html-widget.html-widget-static-bound {
-  width:1500px !important;
-  margin-left: -350px;
+  width:1250px !important;
+  margin-left: -200px;
 }
 
 .Reactable.ReactTable.table.reactable-1i3kzw9.rt-compact {
-  width:1500px !important;
-  margin-left: -350px;
+  width:1250px !important;
+  margin-left: -200px;
 }
 
 .cell-output-display:not(.no-overflow-x),.knitsql-table:not(.no-overflow-x) {
@@ -333,11 +343,9 @@ t <- reactable(
 }
 <!-- -->
 
-.nav
-
 .grid {
   width:1200 !important;
-  margin-left: -150px;
+  margin-left: -75px;
 }
 
 .oi-ec050e-input {
@@ -462,3 +470,21 @@ t
 :::
 
 Footnote text
+
+
+```{r notes}
+### GET SPOTIFY LINKS
+### GET VIDEO LINKS
+
+### preview tab
+# name of piece
+# description
+# video
+
+### table
+# cell is bulleted list of dates performed
+# filter by date, name, choreo, music
+# no duplicate pieces
+# fix formating of details for all relevant column
+```
+
