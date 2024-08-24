@@ -23,11 +23,6 @@ body {
 }
 </style>
 ```
-<!-- :::{.right} -->
-
-<!-- ![](nycb-logo-dark.jpeg){width="55mm"} -->
-
-<!-- ::: -->
 
 ::: hid
 ::: right
@@ -58,9 +53,32 @@ New York City Ballet's 75th Season
 <br>
 
 ::: fadein
-New York City Ballet celebrated its 75th season from Fall 2023 to Spring 2024. \[SUMMARY OF THE COMPANY\] \[OTHER THINGS THEY DID TO CELEBRATE\]
+New York City Ballet---the largest and one of the most renowned ballet companies in the United States---celebrated its 75th season from Fall 2023 to Spring 2024. 
 
-Explore the repertory performed in this celebratory season in the company's history.
+<details> 
+<br>
+**History**
+
+Founded in 1948 by Georgian-American choreographer [George Balanchine](https://www.nycballet.com/discover/our-history/george-balanchine/) and [Lincoln Kirstein](https://www.nycballet.com/discover/our-history/lincoln-kirstein-1907-1996/), a cultural figure and businessman, the company quickly become known for its "athletic and contemporary" repertory style and its exceptional dancers[^1^](https://www.nycballet.com/about-us#:~:text=New%20York%20City%20Ballet%20is,its%20athletic%20and%20contemporary%20style.). Balanchine and [Jerome Robbins](https://www.nycballet.com/discover/our-history/jerome-robbins/), whom Balanchine invited to serve as Assistant Artistic Director, went on to create dozens of choreographic works for the company over the span of thirty years and each respectively became renowned as choreographic geniuses[^3^](https://www.cbsnews.com/news/the-genius-of-balanchine-a-visual-breakdown/)[^,^][^4^](https://time.com/archive/6733288/a-made-in-the-u-s-a-genius-jerome-robbins-master-choreographer/) Their pieces continue to be iconic staples of the company, comprising the majority of the company's active repertory [^5^](https://www.nycballet.com/discover/our-history/).  
+
+**75th Anniversary**
+
+The 75th anniversary focused its Fall 2023 and Winter 2024 seasons on showcasing Balanchine and Robbins to commemorate the company's history. It also wanted to highlight the company's future, showcasing repertory created between 1988 and today in the Winter and Spring 2024 season, with works by current day choreographers including, Christopher Wheeldon, Alexei Ratmansky, Kyle Abraham, Pam Tanowitz, Ulysses Dove, Albert Evans, William Forsythe, Justin Peck, Amy Hall Garner, and Tiler Peck. 
+
+This included four World Premieres: 
+
+- "Dig the Say" (Justin Peck)
+- "Solitude" (Alexei Ratmansky)
+- "Underneath There is Light" (Amy Hall Garner - first piece for NYCB)
+- "Concerto for Two Pianos" (Tiler Peck - first piece for NYCB).
+
+
+
+As Balanchine said: "I don't have a past. I have a continuous present. The past is part of the present, just as the future is. We exist in time."[^7^](https://playbill.com/article/how-new-york-city-ballet-is-celebrating-its-75th-anniversary)
+
+</details> 
+
+**Explore the repertory performed in this celebratory season below.**
 :::
 
 <br>
@@ -88,6 +106,16 @@ season <-
   season %>%
   mutate(date = as.Date(paste0(date, '-', ifelse(season=="Fall", '2023', '2024')), "%d-%b-%Y"))
 
+video_links <- read_csv('./output_data/links.csv')
+
+format_string <- function(x) {
+  x <- str_replace_all(x, ', and', '<br>')
+  x <- str_replace_all(x, ',', '<br>')
+  x <- str_replace_all(x, ';', '<br><br>')
+  x <- str_replace_all(x, ';', '<br><br>')
+  x
+}
+
 # expand out program
 expand_dets <-
   season %>%
@@ -107,6 +135,8 @@ expand_dets <-
   ) %>%
   # join repetory details
   left_join(rep_details, by='rep') %>%
+  # join video links
+  left_join(video_links, by='rep') %>%
   # count number of times a rep was performed
   group_by(repertory) %>%
   mutate(perf_count = n(), all_dates = paste0(date, collapse = ", ")) %>% ungroup() %>%
@@ -116,55 +146,38 @@ expand_dets <-
     Description = description_short,
     # `Dates` = perf_count,
     # Season = season,
-    Date = format(date, "%b %d, %Y"),
+    Date = as.Date(date, format="%b %d, %Y"),
     all_dates,
     play_url = 'https://open.spotify.com/embed/track/0WbMK4wrZ1wFSty9F7FCgu?utm_source=generator',
     Music = music,
-    Composer = `music by`,
+    Composer = format_string(`music by`),
     Length = length,
     num_dancers,
     Premiere = format(lubridate::mdy(premiere_date), "%b %d, %Y"),
     premiere_place,
-    `original cast`,
-    costumes,
-    Set = set,
-    lighting,
-    photo_url
+    `original cast` = format_string(`original cast`),
+    Costumes = costumes,
+    Set = format_string(set),
+    Lighting = format_string(lighting),
+    photo_url,
+    link = col
     
   ) %>%
   slice_min(., by = 'Repertory', order_by=Date, with_ties=FALSE) %>%
   # reorder columns
   select(Repertory, Choreographer, Date, Length, num_dancers, Premiere, Music, Set,
-         all_dates, costumes, lighting, Composer, play_url, premiere_place, `original cast`, photo_url, Description)
-
-dates_performed <- 
-  season %>%
-  select(repertory, date)
+         all_dates, Costumes, Lighting, Composer, play_url, premiere_place, `original cast`, photo_url, Description, link)
 
 ### https://github.com/qagentur/table-contest-2022/blob/main/table.qmd#L111-L128
-audio_player <- function(src) {
-  # id <- '0WbMK4wrZ1wFSty9F7FCgu'
-  id <- '2FhzgJDlUsdwbHkTobLhYQ'
-  # # Control audio with a play and a pause button
-  # # Pressing play hides play button and shows pause, and the other way around
-  # str_interp('<audio id="${id}" src="${src}"></audio>
-  # <div>
-  #   <button class="music-controls play-button" id="${id}_play" onclick="
-  #     document.getElementById(\'${id}\').play();
-  #     document.getElementById(\'${id}_play\').style.display=\'none\';
-  #     document.getElementById(\'${id}_pause\').style.display=\'block\';
-  #   ">Play</button>
-  #   <button class="music-controls pause-button" id="${id}_pause" style="display:none;" onclick="
-  #     document.getElementById(\'${id}\').pause();
-  #     document.getElementById(\'${id}_pause\').style.display=\'none\';
-  #     document.getElementById(\'${id}_play\').style.display=\'block\';
-  #   ">Pause</button>
-  # </div>')
+audio_player <- function(url) {
+  embed <- 
     str_interp(glue::glue('
-              <iframe style="border-radius:12px; margin-top:10px; margin-bottom:-20px;"
-               src="https://open.spotify.com/embed/track/{id}?utm_source=generator"
-               width="60%%" height="100" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write;
-               encrypted-media; fullscreen; picture-in-picture"></iframe>'))
+            <iframe style="border-radius:12px; margin-top:10px; margin-bottom:-20px;"
+             src="{url}"
+             width="60%" height="100" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write;
+             encrypted-media; fullscreen; picture-in-picture"></iframe>')
+            )
+  return(ifelse(is.na(url), '', embed))
 }
 ```
 
@@ -173,12 +186,22 @@ audio_player <- function(src) {
 
 ::: grid
 ::: g-col-4
-This column takes 1/3 of the page
+```{ojs}
+html`<br><br>
+     <p style="font-style: italic; font-size: 20px;">${data.find(song => song.Repertory === repDropdown).Repertory}</p>
+     ${data.find(song => song.Repertory === repDropdown).Description}<br><br>
+     Premiered: ${data.find(song => song.Repertory === repDropdown).Premiere}<br><br>
+     Choreographer: ${data.find(song => song.Repertory === repDropdown).Choreographer}
+    `
+```
 :::
 
 ::: g-col-8
 ```{r}
-ojs_define(ojs_data = expand_dets %>% select(Repertory))
+ojs_define(ojs_data = bind_rows(
+            # video_links[1,] %>% mutate(rep = '') %>% rename(Repertory = rep, link = col),
+            expand_dets %>% select(Repertory, Description, Premiere, Choreographer, photo_url, link))
+           )
 ```
 
 ```{ojs}
@@ -191,13 +214,29 @@ viewof repDropdown = Inputs.select(
     label: "Repertory",
     unique: true
   }
+
 )
 ```
 
 ```{ojs}
-//| expandable: false
-html`<iframe width="600" height="400" src="https://www.youtube.com/embed/8wTkgTF6fUs?si=MohEFHe-jWutrk8_" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`
+sel = data.find(song => song.Repertory === repDropdown).link
+photo = data.find(song => song.Repertory === repDropdown).photo_url
 ```
+
+```{ojs}
+//| expandable: false
+{
+  if (sel === undefined) {
+    // Handle the case when sel is undefined
+    console.log(photo);
+    return html`<img src="${photo}" alt="Stickman" width="530" height="466" style="margin-top: 30px;">`;
+  } else {
+    // Proceed with sel
+    return html`<iframe width="600" height="400" src="${sel}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen="" style="margin-top: 30px;"></iframe>`;
+  }
+}
+```
+
 :::
 :::
 
@@ -209,7 +248,6 @@ options(reactable.theme = reactableTheme(
   backgroundColor = "hsl(233, 9%, 19%)", #121212
   borderColor = "hsl(233, 9%, 22%)",
   stripedColor = "hsl(233, 12%, 22%)",
-  highlightColor = "hsl(233, 12%, 24%)",
   inputStyle = list(backgroundColor = "hsl(233, 9%, 25%)"),
   selectStyle = list(backgroundColor = "hsl(233, 9%, 25%)"),
   pageButtonHoverStyle = list(backgroundColor = "hsl(233, 9%, 25%)"),
@@ -227,6 +265,7 @@ t <- reactable(
   defaultPageSize = 7,
   pageSizeOptions = c(5, 7,16, 32, 50, 100),
   defaultColDef = colDef(headerClass = "header colheader"),
+  # rowStyle = list(background = "yellow"),
   expand_dets,
   columns = list(
     Repertory = colDef(
@@ -234,71 +273,65 @@ t <- reactable(
       cell = function(value) {
         glue::glue('
         {htmltools::tags$p(strong(value), class = "label_rep")}
-        { htmltools::tags$img(src = expand_dets[expand_dets$Repertory==value,]$photo_url[1], width = "350", height = "350")}
-        {audio_player(value)}'
-        )
-      }
-      # cell = function(value) {   
-      #   tag_list <- tagList(
-      #     htmltools::tags$p(strong(value), class = 'label_rep'),
-      #     htmltools::tags$img(src = expand_dets[expand_dets$Repertory==value,]$photo_url[1],
-      #                                       width = "350",
-      #                                       height = "350"),
-      #       audio_player(value)
-      #     )
-      #     as.character(tag_list)
-      #   }
-      ),
+        { htmltools::tags$img(src = expand_dets[expand_dets$Repertory==value,]$photo_url[1], width = "315", height = "283")}
+        {audio_player(video_links %>% filter(Repertory == value) %>% pull(spotify))}'
+        )}
+    ),
     Choreographer = colDef(aggregate = "unique", minWidth=145, align = "center"),
     Description = colDef(aggregate = "unique", minWidth=400, align = "center", show = FALSE),
     Length = colDef(align = "center"),
-    Music = colDef(minWidth=60, cell = function(value) {''}, align = "center", details = function(index) {
-      premiere <- expand_dets[index,] %>% select(Music, Composer)
-      tbl <- reactable(premiere, outlined = TRUE, highlight = TRUE, fullWidth = FALSE)
-      htmltools::div(style = list(margin = "12px 45px"), tbl)
+    Music = colDef(minWidth=60, cell = function(value) {''}, align = "center", 
+                   details = function(index) {
+                    premiere <- expand_dets[index,] %>% select(Music, Composer)
+                    tbl <- reactable(premiere, outlined = TRUE, highlight = TRUE, fullWidth = FALSE,
+                                      defaultColDef = colDef(minWidth = 400, align = 'center'),
+                                      columns = list(Composer = colDef(html = TRUE)))
+                    htmltools::div(style = list(`margin-left` = "250px"), tbl)
     }),
     num_dancers = colDef(name = 'Number of Dancers', align = "center"),
     Date = colDef(name = "Performance Dates", minWidth=140, align = "center", 
       details = function(index) {
-        r <- dates_performed[index,] %>% pull(repertory)
-        dates <- dates_performed %>% filter(repertory == r) %>% select(date)
+        dates <- 
+          expand_dets %>% 
+          .[index,] %>% 
+          pull(all_dates) %>% 
+          strsplit(., ', ') %>% 
+          data.frame(.) %>% 
+          rlang::set_names('Dates Performed') %>% 
+          mutate(`Dates Performed` = as.Date(`Dates Performed`)) %>% 
+          arrange(`Dates Performed`)
         tbl <- reactable(dates, outlined = TRUE, highlight = TRUE, fullWidth = FALSE)
-        htmltools::tagList(
-          htmltools::div(style = list(margin = "12px 45px"), tbl)
-        )
+        htmltools::tagList(htmltools::div(style = list(`margin-left` = "250px"), tbl))
     }),
-      ### DETAILS ALL THE DATES
-    # Date = colDef(
-    #   aggregate = "count",
-    #   format = list(
-    #     aggregated = colFormat(suffix = " performances")
-    #   )
-    # ),
-    
-    # Division = colDef(aggregate = "unique"),
-    # Area = colDef(aggregate = "sum", format = colFormat(separators = TRUE)),
-    
-    
     Premiere = colDef(minWidth=140, align = "center", details = function(index) {
       premiere <- expand_dets[index,] %>% select(Premiere, premiere_place, `original cast`)
-      tbl <- reactable(premiere, outlined = TRUE, highlight = TRUE, fullWidth = FALSE)
-      htmltools::div(style = list(margin = "12px 45px"), tbl)
+      tbl <- reactable(premiere, outlined = TRUE, highlight = TRUE, fullWidth = FALSE,
+                       columns = list(Premiere = colDef(minWidth = 120),
+                                      premiere_place = colDef(minWidth = 240, name = 'Place', align = 'center'), 
+                                      `original cast` = colDef(minWidth = 420, name = 'Original Cast', html = TRUE)
+                                      ))
+      htmltools::div(style = list(`margin-left` = "250px"), tbl)
     }),
     Set = colDef(minWidth=60, cell = function(value) {''}, align = "center", details = function(index) {
-      premiere <- expand_dets[index,] %>% select(costumes, Set, lighting)
-      tbl <- reactable(premiere, outlined = TRUE, highlight = TRUE, fullWidth = FALSE)
-      htmltools::div(style = list(margin = "12px 45px"), tbl)
+      premiere <- expand_dets[index,] %>% select(Costumes, Set, Lighting)
+      tbl <- reactable(premiere, outlined = TRUE, highlight = TRUE, fullWidth = FALSE,
+                       columns = list(Set = colDef(html = TRUE),
+                                      Lighting = colDef(html = TRUE)
+                                      ),
+                       defaultColDef = colDef(minWidth = 200, align = 'center'))
+      htmltools::div(style = list(`margin-left` = "250px"), tbl)
     }),
     # https://stackoverflow.com/questions/69385382/use-image-in-reactable-expandable-row
     play_url = colDef(show = FALSE),
     all_dates = colDef(show = FALSE),
-    costumes = colDef(show = FALSE),
-    lighting = colDef(show = FALSE),
+    Costumes = colDef(show = FALSE),
+    Lighting = colDef(show = FALSE),
     Composer = colDef(show = FALSE),
     premiere_place = colDef(show = FALSE),
     `original cast` = colDef(show = FALSE),
     `photo_url` = colDef(show = FALSE),
-    Description = colDef(show = FALSE)
+    Description = colDef(show = FALSE),
+    link = colDef(show = FALSE)
   ),
   bordered = TRUE,
   details = function(index) {
@@ -308,31 +341,8 @@ t <- reactable(
 )
 ```
 
-```{r}
-########### Style table ###########
-# div(
-#     br(),
-#     div(class = "title", align = "center",
-#         "Most Popular Dog Breeds of 2020"
-#         ),
-#     div(align="center", class = "img",
-#     img(src="./project_images/dog.png", 
-#         alt = "icon of cartoon dog head with small heart over its head from https://www.flaticon.com/free-icon/dog_2064847", 
-#         height=30, width=30)),
-#         div(class = "subtitle", align = "center",
-#         "A list of all American Kennel Club recognized dog breeds and their traits, ranked by popularity in 2020"
-#         ),
-#     br()
-# )
-```
-
 ```{css}
-<!-- update CSS so table can be wider -->
-.reactable.html-widget.html-widget-static-bound {
-  width:1250px !important;
-  margin-left: -200px;
-}
-
+/* update bootstrap CSS so table can be wider */
 .Reactable.ReactTable.table.reactable-1i3kzw9.rt-compact {
   width:1250px !important;
   margin-left: -200px;
@@ -341,11 +351,12 @@ t <- reactable(
 .cell-output-display:not(.no-overflow-x),.knitsql-table:not(.no-overflow-x) {
     overflow-x: unset !important;
 }
-<!-- -->
+/* */
+
 
 .grid {
   width:1200 !important;
-  margin-left: -75px;
+  /* margin-left: -75px; */
 }
 
 .oi-ec050e-input {
@@ -355,9 +366,16 @@ t <- reactable(
   padding: 5px;
 }
 
-<!-- label[for="oi-ec050e-1"] { -->
-<!--   vertical-align: top; -->
-<!-- } -->
+
+/* Changes font color to black in Repertory dropdown */
+.oi-3a86ea select {
+  color: black;
+}
+
+.oi-3a86ea label {
+  flex-shrink: 1 !important;
+}
+
 
 .tab-content {
   border-left: None;
@@ -383,11 +401,13 @@ t <- reactable(
   border-radius: 50px;
 }
 
+/* row hover color */
+.ReactTable .rt-tr:hover .rt-td {
+    background: #363845
+}
+
 .right {
   float: right;
-  <!-- width: 300px; -->
-  <!-- padding: 10px; -->
-  <!-- position: absolute; -->
   right: 0px;
   top: 0px;
   width: 55mm;
@@ -399,15 +419,14 @@ t <- reactable(
   margin-right: 50px;
 }
 
-
-.hid{
+.hid {
     transition: all 3s;
     opacity: 0;
     filter: blur(5px);
     transform: translateY(200px);
 }
 
-.show{
+.show {
     opacity: 1;
     filter: blur(0);
     transform: translateY(0);
@@ -425,7 +444,6 @@ t <- reactable(
     background: rgba(0,0,0,0)
 }
 
-
 .fadein {
   opacity: 0;
   animation: fadeIn 3s ease-out forwards;
@@ -441,6 +459,13 @@ t <- reactable(
 .label_rep {
   padding-top: 10px;
   margin-bottom: -1px;
+}
+
+.footnote {
+  font-size: 11px;
+  text-align: right;
+  margin-bottom: -40px;
+  margin-top: 50px;
 }
 ```
 
@@ -469,22 +494,12 @@ t
 ```
 :::
 
-Footnote text
-
+<p class="footnote">Photographs and NYCB Logo are sourced from New York City Ballet's official website, https://www.nycballet.com/. Choreography performed and dates sourced from New York City Ballet Archive.<br>As noted on New York City Ballet's official website: 'The photographs depict choreography copyrighted by the individual choreographers. Choreography by George Balanchine © The George Balanchine Trust. “New York City Ballet” and the block letter logo are registered trademarks of New York City Ballet, Inc.'<br><br>Code and data here --- webpage created by @kkakey</p>
 
 ```{r notes}
-### GET SPOTIFY LINKS
-### GET VIDEO LINKS
-
-### preview tab
-# name of piece
-# description
-# video
-
 ### table
-# cell is bulleted list of dates performed
-# filter by date, name, choreo, music
-# no duplicate pieces
-# fix formating of details for all relevant column
+# piece length (fix ordering so it is numeric)
+
+# clean up code!
 ```
 
