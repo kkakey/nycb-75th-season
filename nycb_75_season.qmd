@@ -3,6 +3,7 @@ title: ""
 format:
   html:
     embed-resources: true
+    css: style.css
 editor: visual
 execute:
   echo: false
@@ -93,21 +94,29 @@ library(reactablefmtr)
 ```
 
 ```{r read-data}
-rep_details <- read_csv('./output_data/rep_detail.csv')
+rep_details <- 
+  read_csv('./output_data/rep_detail.csv') %>%
+  mutate(length = case_when(
+          length == 'Act I: 1 hour 8 minutes, Act II: 32 minutes' ~ lubridate::hm('1 hour and 40 minutes'),
+          # lubridate::parse_date_time won't parse if not made into an hour
+          length == '60 minutes' ~ lubridate::hm('1 hour and 0 minutes'),
+          T ~ lubridate::hm(ifelse(grepl('hr|hour', length), length, paste('0 hour', length)))
+         )
+  )
+
 season <- 
   list.files(path = './raw_data/', pattern = "\\.csv$", full.names=TRUE) %>%
   rlang::set_names(str_extract(basename(.), 'Winter|Spring|Fall')) %>%
   purrr::map_dfr(~read_csv(.) %>% 
                    mutate(repertory = coalesce(repertory, 
                                                snakecase::to_sentence_case(`program name`))), 
-                 .id = "season") 
-
-season <- 
-  season %>%
+                 .id = "season") %>%
   mutate(date = as.Date(paste0(date, '-', ifelse(season=="Fall", '2023', '2024')), "%d-%b-%Y"))
 
 video_links <- read_csv('./output_data/links.csv')
+```
 
+```{r functions}
 format_string <- function(x) {
   x <- str_replace_all(x, ', and', '<br>')
   x <- str_replace_all(x, ',', '<br>')
@@ -116,6 +125,20 @@ format_string <- function(x) {
   x
 }
 
+### https://github.com/qagentur/table-contest-2022/blob/main/table.qmd#L111-L128
+audio_player <- function(url) {
+  embed <- 
+    str_interp(glue::glue('
+            <iframe style="border-radius:12px; margin-top:10px; margin-bottom:-20px;"
+             src="{url}"
+             width="60%" height="100" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write;
+             encrypted-media; fullscreen; picture-in-picture"></iframe>')
+            )
+  return(ifelse(is.na(url), '', embed))
+}
+```
+
+```{r data-joins}
 # expand out program
 expand_dets <-
   season %>%
@@ -144,14 +167,11 @@ expand_dets <-
     Repertory = repertory,
     Choreographer=choreography,
     Description = description_short,
-    # `Dates` = perf_count,
-    # Season = season,
     Date = as.Date(date, format="%b %d, %Y"),
     all_dates,
-    play_url = 'https://open.spotify.com/embed/track/0WbMK4wrZ1wFSty9F7FCgu?utm_source=generator',
     Music = music,
     Composer = format_string(`music by`),
-    Length = length,
+    Length = format(lubridate::parse_date_time(ifelse(!grepl('H', length), paste('0H', length), paste0('0', length)), 'HMS'), '%H hr %M min'),
     num_dancers,
     Premiere = format(lubridate::mdy(premiere_date), "%b %d, %Y"),
     premiere_place,
@@ -166,19 +186,8 @@ expand_dets <-
   slice_min(., by = 'Repertory', order_by=Date, with_ties=FALSE) %>%
   # reorder columns
   select(Repertory, Choreographer, Date, Length, num_dancers, Premiere, Music, Set,
-         all_dates, Costumes, Lighting, Composer, play_url, premiere_place, `original cast`, photo_url, Description, link)
-
-### https://github.com/qagentur/table-contest-2022/blob/main/table.qmd#L111-L128
-audio_player <- function(url) {
-  embed <- 
-    str_interp(glue::glue('
-            <iframe style="border-radius:12px; margin-top:10px; margin-bottom:-20px;"
-             src="{url}"
-             width="60%" height="100" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write;
-             encrypted-media; fullscreen; picture-in-picture"></iframe>')
-            )
-  return(ifelse(is.na(url), '', embed))
-}
+         all_dates, Costumes, Lighting, Composer, premiere_place, `original cast`,
+         photo_url, Description, link)
 ```
 
 ::: panel-tabset
@@ -186,7 +195,7 @@ audio_player <- function(url) {
 
 ::: grid
 ::: g-col-4
-```{ojs}
+```{ojs preview-description}
 html`<br><br>
      <p style="font-style: italic; font-size: 20px;">${data.find(song => song.Repertory === repDropdown).Repertory}</p>
      ${data.find(song => song.Repertory === repDropdown).Description}<br><br>
@@ -197,14 +206,14 @@ html`<br><br>
 :::
 
 ::: g-col-8
-```{r}
+```{r js-data}
 ojs_define(ojs_data = bind_rows(
             # video_links[1,] %>% mutate(rep = '') %>% rename(Repertory = rep, link = col),
             expand_dets %>% select(Repertory, Description, Premiere, Choreographer, photo_url, link))
            )
 ```
 
-```{ojs}
+```{ojs js-dropdown}
 data = transpose(ojs_data)
 
 // Create a dropdown menu 
@@ -218,12 +227,12 @@ viewof repDropdown = Inputs.select(
 )
 ```
 
-```{ojs}
+```{ojs js-selects}
 sel = data.find(song => song.Repertory === repDropdown).link
 photo = data.find(song => song.Repertory === repDropdown).photo_url
 ```
 
-```{ojs}
+```{ojs js-return}
 //| expandable: false
 {
   if (sel === undefined) {
@@ -242,7 +251,7 @@ photo = data.find(song => song.Repertory === repDropdown).photo_url
 
 ## Table
 
-```{r}
+```{r table}
 options(reactable.theme = reactableTheme(
   color = "hsl(233, 9%, 87%)",
   backgroundColor = "hsl(233, 9%, 19%)", #121212
@@ -265,7 +274,6 @@ t <- reactable(
   defaultPageSize = 7,
   pageSizeOptions = c(5, 7,16, 32, 50, 100),
   defaultColDef = colDef(headerClass = "header colheader"),
-  # rowStyle = list(background = "yellow"),
   expand_dets,
   columns = list(
     Repertory = colDef(
@@ -273,7 +281,8 @@ t <- reactable(
       cell = function(value) {
         glue::glue('
         {htmltools::tags$p(strong(value), class = "label_rep")}
-        { htmltools::tags$img(src = expand_dets[expand_dets$Repertory==value,]$photo_url[1], width = "315", height = "283")}
+        { htmltools::tags$img(src = expand_dets[expand_dets$Repertory==value,]$photo_url[1], 
+          width = "315", height = "283")}
         {audio_player(video_links %>% filter(Repertory == value) %>% pull(spotify))}'
         )}
     ),
@@ -283,9 +292,10 @@ t <- reactable(
     Music = colDef(minWidth=60, cell = function(value) {''}, align = "center", 
                    details = function(index) {
                     premiere <- expand_dets[index,] %>% select(Music, Composer)
-                    tbl <- reactable(premiere, outlined = TRUE, highlight = TRUE, fullWidth = FALSE,
-                                      defaultColDef = colDef(minWidth = 400, align = 'center'),
-                                      columns = list(Composer = colDef(html = TRUE)))
+                    tbl <- reactable(premiere, 
+                                     outlined = TRUE, highlight = TRUE, fullWidth = FALSE,
+                                     defaultColDef = colDef(minWidth = 400, align = 'center'),
+                                     columns = list(Composer = colDef(html = TRUE)))
                     htmltools::div(style = list(`margin-left` = "250px"), tbl)
     }),
     num_dancers = colDef(name = 'Number of Dancers', align = "center"),
@@ -322,7 +332,6 @@ t <- reactable(
       htmltools::div(style = list(`margin-left` = "250px"), tbl)
     }),
     # https://stackoverflow.com/questions/69385382/use-image-in-reactable-expandable-row
-    play_url = colDef(show = FALSE),
     all_dates = colDef(show = FALSE),
     Costumes = colDef(show = FALSE),
     Lighting = colDef(show = FALSE),
@@ -341,137 +350,9 @@ t <- reactable(
 )
 ```
 
-```{css}
-/* update bootstrap CSS so table can be wider */
-.Reactable.ReactTable.table.reactable-1i3kzw9.rt-compact {
-  width:1250px !important;
-  margin-left: -200px;
-}
-
-.cell-output-display:not(.no-overflow-x),.knitsql-table:not(.no-overflow-x) {
-    overflow-x: unset !important;
-}
-/* */
-
-
-.grid {
-  width:1200 !important;
-  /* margin-left: -75px; */
-}
-
-.oi-ec050e-input {
-  background: black;
-  border-radius: 50px;
-  flex: 1;  
-  padding: 5px;
-}
-
-
-/* Changes font color to black in Repertory dropdown */
-.oi-3a86ea select {
-  color: black;
-}
-
-.oi-3a86ea label {
-  flex-shrink: 1 !important;
-}
-
-
-.tab-content {
-  border-left: None;
-  border-right: None;
-  border-bottom: None;
-}
-
-.nav-tabs.nav-link.active {
-  color: white;
-  background-color: black;
-  border-color: black;
-}
-
-.nav-link {
-  color: white;
-}
-
-.nav-link:hover {
-    color: #121212;
-}
-
-.table {
-  border-radius: 50px;
-}
-
-/* row hover color */
-.ReactTable .rt-tr:hover .rt-td {
-    background: #363845
-}
-
-.right {
-  float: right;
-  right: 0px;
-  top: 0px;
-  width: 55mm;
-  height: 55mm;
-}
-
-.rt-search.reactable-8dii1e {
-  margin: 10px;
-  margin-right: 50px;
-}
-
-.hid {
-    transition: all 3s;
-    opacity: 0;
-    filter: blur(5px);
-    transform: translateY(200px);
-}
-
-.show {
-    opacity: 1;
-    filter: blur(0);
-    transform: translateY(0);
-}
-
-.rt-tr-details {
-  inline-size: 400px;
-  overflow-wrap: break-word;
-  <!-- margin-left: -100%; -->
-  <!-- margin-right: -100%; -->
-  text-align: center;
-}
-
-.fade-out {
-    background: rgba(0,0,0,0)
-}
-
-.fadein {
-  opacity: 0;
-  animation: fadeIn 3s ease-out forwards;
-  display:inline-block;
-}
-
-@keyframes fadeIn{
-  to{
-    opacity: 1;
-  }
-}
-
-.label_rep {
-  padding-top: 10px;
-  margin-bottom: -1px;
-}
-
-.footnote {
-  font-size: 11px;
-  text-align: right;
-  margin-bottom: -40px;
-  margin-top: 50px;
-}
-```
-
-```{js}
-<!-- code for text animation -->
-<!-- https://javascript.plainenglish.io/how-to-implement-animation-on-scroll-with-vanilla-javascript-655093a38059 -->
+```{js js-animation}
+// code for text animation
+// https://javascript.plainenglish.io/how-to-implement-animation-on-scroll-with-vanilla-javascript-655093a38059
 const hidden_elements = document.querySelectorAll('.hid')
 const observer = new IntersectionObserver(entries => {
     entries.forEach(entry => {
@@ -489,7 +370,7 @@ hidden_elements.forEach(el => {
 });
 ```
 
-```{r}
+```{r show-table}
 t
 ```
 :::
@@ -499,7 +380,5 @@ t
 ```{r notes}
 ### table
 # piece length (fix ordering so it is numeric)
-
-# clean up code!
 ```
 
