@@ -1,0 +1,4 @@
+- source: nycb_75_season.qmd
+  quarto-pub:
+    - id: 61624167-e058-4878-990a-79ef1ce9ec75
+      url: 'https://kkakey.quarto.pub/nycb_75_season'

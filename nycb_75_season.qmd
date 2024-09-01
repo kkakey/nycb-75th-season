@@ -274,29 +274,52 @@ t <- reactable(
   expand_dets,
   columns = list(
     Repertory = colDef(
-      minWidth=500, align = "center", html = TRUE, sticky = "left",
+      minWidth=500, 
+      align = "center", 
+      html = TRUE, 
+      sticky = "left",
       cell = function(value) {
         glue::glue('
         {htmltools::tags$p(strong(value), class = "label_rep")}
         { htmltools::tags$img(src = expand_dets[expand_dets$Repertory==value,]$photo_url[1], 
           width = "315", height = "283")}
-        {audio_player(video_links %>% filter(Repertory == value) %>% pull(spotify))}'
-        )}
+        {audio_player(video_links %>% filter(Repertory == value) %>% pull(spotify))}')
+      }
     ),
-    Choreographer = colDef(aggregate = "unique", minWidth=145, align = "center"),
-    Description = colDef(aggregate = "unique", minWidth=400, align = "center", show = FALSE),
+    Choreographer = colDef(
+      aggregate = "unique", 
+      minWidth=145, 
+      align = "center"
+    ),
+    Description = colDef(
+      aggregate = "unique", 
+      minWidth=400, 
+      align = "center", 
+      show = FALSE
+    ),
     Length = colDef(align = "center"),
-    Music = colDef(minWidth=60, cell = function(value) {''}, align = "center", 
-                   details = function(index) {
-                    premiere <- expand_dets[index,] %>% select(Music, Composer)
-                    tbl <- reactable(premiere, 
-                                     outlined = TRUE, highlight = TRUE, fullWidth = FALSE,
-                                     defaultColDef = colDef(minWidth = 400, align = 'center'),
-                                     columns = list(Composer = colDef(html = TRUE)))
-                    htmltools::div(style = list(`margin-left` = "250px"), tbl)
-    }),
-    num_dancers = colDef(name = 'Number of Dancers', align = "center"),
-    Date = colDef(name = "Performance Dates", minWidth=140, align = "center", 
+    Music = colDef(
+      minWidth=60, 
+      cell = function(value) {''}, 
+      align = "center", 
+      details = function(index) {
+        premiere <- expand_dets[index,] %>% select(Music, Composer)
+        tbl <- reactable(premiere, 
+                         style = list(background = 'hsl(233, 9%, 14%)'),
+                         outlined = TRUE, highlight = TRUE, fullWidth = FALSE,
+                         defaultColDef = colDef(minWidth = 400, align = 'center'),
+                         columns = list(Composer = colDef(html = TRUE)))
+        htmltools::div(style = list(`margin-left` = "250px"), tbl)
+      }
+    ),
+    num_dancers = colDef(
+      name = 'Number of Dancers', 
+      align = "center"
+    ),
+    Date = colDef(
+      name = "Performance Dates", 
+      minWidth=140, 
+      align = "center", 
       details = function(index) {
         dates <- 
           expand_dets %>% 
@@ -307,27 +330,48 @@ t <- reactable(
           rlang::set_names('Dates Performed') %>% 
           mutate(`Dates Performed` = as.Date(`Dates Performed`)) %>% 
           arrange(`Dates Performed`)
-        tbl <- reactable(dates, outlined = TRUE, highlight = TRUE, fullWidth = FALSE)
+        tbl <- reactable(dates, 
+                          outlined = TRUE, 
+                          highlight = TRUE, 
+                          fullWidth = FALSE, 
+                          style = list(background = 'hsl(233, 9%, 14%)')
+                        )
         htmltools::tagList(htmltools::div(style = list(`margin-left` = "250px"), tbl))
-    }),
-    Premiere = colDef(minWidth=140, align = "center", details = function(index) {
-      premiere <- expand_dets[index,] %>% select(Premiere, premiere_place, `original cast`)
-      tbl <- reactable(premiere, outlined = TRUE, highlight = TRUE, fullWidth = FALSE,
-                       columns = list(Premiere = colDef(minWidth = 120),
-                                      premiere_place = colDef(minWidth = 240, name = 'Place', align = 'center'), 
-                                      `original cast` = colDef(minWidth = 420, name = 'Original Cast', html = TRUE)
-                                      ))
-      htmltools::div(style = list(`margin-left` = "250px"), tbl)
-    }),
-    Set = colDef(minWidth=60, cell = function(value) {''}, align = "center", details = function(index) {
-      premiere <- expand_dets[index,] %>% select(Costumes, Set, Lighting)
-      tbl <- reactable(premiere, outlined = TRUE, highlight = TRUE, fullWidth = FALSE,
-                       columns = list(Set = colDef(html = TRUE),
-                                      Lighting = colDef(html = TRUE)
-                                      ),
-                       defaultColDef = colDef(minWidth = 200, align = 'center'))
-      htmltools::div(style = list(`margin-left` = "250px"), tbl)
-    }),
+      }
+    ),
+    Premiere = colDef(
+      minWidth=140, 
+      align = "center", 
+      details = function(index) {
+        premiere <- expand_dets[index,] %>% select(Premiere, premiere_place, `original cast`)
+        tbl <- reactable(premiere, 
+                         outlined = TRUE, 
+                         highlight = TRUE, 
+                         fullWidth = FALSE,
+                         style = list(background = 'hsl(233, 9%, 14%)'),
+                         columns = list(Premiere = colDef(minWidth = 120),
+                                        premiere_place = colDef(minWidth = 240, name = 'Place', align = 'center'), 
+                                        `original cast` = colDef(minWidth = 420, name = 'Original Cast', html = TRUE)
+                                        ))
+        htmltools::div(style = list(`margin-left` = "250px"), tbl)
+      }
+    ),
+    Set = colDef(
+      minWidth=60, 
+      cell = function(value) {''}, 
+      align = "center", 
+      details = function(index) {
+        premiere <- expand_dets[index,] %>% select(Costumes, Set, Lighting)
+        tbl <- reactable(premiere, 
+                         outlined = TRUE, highlight = TRUE, fullWidth = FALSE,
+                         style = list(background = 'hsl(233, 9%, 14%)'),
+                         columns = list(Set = colDef(html = TRUE),
+                                        Lighting = colDef(html = TRUE)
+                                        ),
+                         defaultColDef = colDef(minWidth = 200, align = 'center'))
+        htmltools::div(style = list(`margin-left` = "250px"), tbl)
+      }
+    ),
     # https://stackoverflow.com/questions/69385382/use-image-in-reactable-expandable-row
     all_dates = colDef(show = FALSE),
     Costumes = colDef(show = FALSE),
@@ -341,9 +385,9 @@ t <- reactable(
   ),
   bordered = TRUE,
   details = function(index) {
-      htmltools::tags$p(expand_dets[index,]$Description)
+      htmltools::tags$p(expand_dets[index,]$Description, 
+                        style = list(`background-color` = 'hsl(233, 9%, 14%)'))
     }
-
 )
 ```
 
