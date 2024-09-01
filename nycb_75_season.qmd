@@ -25,7 +25,6 @@ body {
 }
 </style>
 ```
-
 ::: hid
 ::: right
 ```{=html}
@@ -55,30 +54,28 @@ New York City Ballet's 75th Season
 <br>
 
 ::: fadein
-New York City Ballet---the largest and one of the most renowned ballet companies in the United States---celebrated its 75th season from Fall 2023 to Spring 2024. 
+New York City Ballet---the largest and one of the most renowned ballet companies in the United States---celebrated its 75th season from Fall 2023 to Spring 2024.
 
-<details> 
-<br>
-**History**
+<details>
 
-Founded in 1948 by Georgian-American choreographer [George Balanchine](https://www.nycballet.com/discover/our-history/george-balanchine/) and [Lincoln Kirstein](https://www.nycballet.com/discover/our-history/lincoln-kirstein-1907-1996/), a cultural figure and businessman, the company quickly become known for its "athletic and contemporary" repertory style and its exceptional dancers[^1^](https://www.nycballet.com/about-us#:~:text=New%20York%20City%20Ballet%20is,its%20athletic%20and%20contemporary%20style.). Balanchine and [Jerome Robbins](https://www.nycballet.com/discover/our-history/jerome-robbins/), whom Balanchine invited to serve as Assistant Artistic Director, went on to create dozens of choreographic works for the company over the span of thirty years and each respectively became renowned as choreographic geniuses[^3^](https://www.cbsnews.com/news/the-genius-of-balanchine-a-visual-breakdown/)[^,^][^4^](https://time.com/archive/6733288/a-made-in-the-u-s-a-genius-jerome-robbins-master-choreographer/) Their pieces continue to be iconic staples of the company, comprising the majority of the company's active repertory [^5^](https://www.nycballet.com/discover/our-history/).  
+<br> **History**
+
+Founded in 1948 by Georgian-American choreographer [George Balanchine](https://www.nycballet.com/discover/our-history/george-balanchine/) and [Lincoln Kirstein](https://www.nycballet.com/discover/our-history/lincoln-kirstein-1907-1996/), a cultural figure and businessman, the company quickly become known for its "athletic and contemporary" repertory style and its exceptional dancers[^1^](https://www.nycballet.com/about-us#:\~:text=New%20York%20City%20Ballet%20is,its%20athletic%20and%20contemporary%20style.). Balanchine and [Jerome Robbins](https://www.nycballet.com/discover/our-history/jerome-robbins/), whom Balanchine invited to serve as Assistant Artistic Director, went on to create dozens of choreographic works for the company over the span of thirty years and each respectively became renowned as choreographic geniuses[^2^](https://www.cbsnews.com/news/the-genius-of-balanchine-a-visual-breakdown/) [^3^](https://time.com/archive/6733288/a-made-in-the-u-s-a-genius-jerome-robbins-master-choreographer/) Their pieces continue to be iconic staples of the company, comprising the majority of the company's active repertory [^4^](https://www.nycballet.com/discover/our-history/).
 
 **75th Anniversary**
 
-The 75th anniversary focused its Fall 2023 and Winter 2024 seasons on showcasing Balanchine and Robbins to commemorate the company's history. It also wanted to highlight the company's future, showcasing repertory created between 1988 and today in the Winter and Spring 2024 season, with works by current day choreographers including, Christopher Wheeldon, Alexei Ratmansky, Kyle Abraham, Pam Tanowitz, Ulysses Dove, Albert Evans, William Forsythe, Justin Peck, Amy Hall Garner, and Tiler Peck. 
+The 75th anniversary focused its Fall 2023 and Winter 2024 seasons on showcasing Balanchine and Robbins to commemorate the company's history. It also wanted to highlight the company's future, showcasing repertory created between 1988 and today in the Winter and Spring 2024 season, with works by current day choreographers including, Christopher Wheeldon, Alexei Ratmansky, Kyle Abraham, Pam Tanowitz, Ulysses Dove, Albert Evans, William Forsythe, Justin Peck, Amy Hall Garner, and Tiler Peck.
 
-This included four World Premieres: 
+This included four World Premieres:
 
-- "Dig the Say" (Justin Peck)
-- "Solitude" (Alexei Ratmansky)
-- "Underneath There is Light" (Amy Hall Garner - first piece for NYCB)
-- "Concerto for Two Pianos" (Tiler Peck - first piece for NYCB).
+-   "Dig the Say" (Justin Peck)
+-   "Solitude" (Alexei Ratmansky)
+-   "Underneath There is Light" (Amy Hall Garner - first piece for NYCB)
+-   "Concerto for Two Pianos" (Tiler Peck - first piece for NYCB).
 
+As Balanchine said: "I don't have a past. I have a continuous present. The past is part of the present, just as the future is. We exist in time."[^5^](https://playbill.com/article/how-new-york-city-ballet-is-celebrating-its-75th-anniversary)
 
-
-As Balanchine said: "I don't have a past. I have a continuous present. The past is part of the present, just as the future is. We exist in time."[^7^](https://playbill.com/article/how-new-york-city-ballet-is-celebrating-its-75th-anniversary)
-
-</details> 
+</details>
 
 **Explore the repertory performed in this celebratory season below.**
 :::
@@ -246,7 +243,6 @@ photo = data.find(song => song.Repertory === repDropdown).photo_url
   }
 }
 ```
-
 :::
 :::
 
@@ -376,5 +372,4 @@ t
 ```
 :::
 
-<p class="footnote">This site is unofficial and unaffiliated with New York City Ballet. Photographs are sourced from New York City Ballet's official website, https://www.nycballet.com/, and the NYCB block letter logo are registered trademark of New York City Ballet, Inc.<br><br>Code and data [here](https://github.com/kkakey/nycb-75th-season) --- webpage created by @kkakey</p>
-
+<p class="footnote">This site is unofficial and unaffiliated with New York City Ballet.<br>Photographs are sourced from New York City Ballet's official website, https://www.nycballet.com/<br>and the NYCB block letter logo is registered trademark of New York City Ballet, Inc.<br><br>Code and data [here](https://github.com/kkakey/nycb-75th-season) --- webpage created by @kkakey</p>
