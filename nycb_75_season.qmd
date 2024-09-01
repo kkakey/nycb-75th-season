@@ -1,9 +1,10 @@
 ---
 title: ""
+pagetitle: nycb-75th-season
 format:
   html:
     embed-resources: true
-    css: style.css
+    css: www/style.css
 editor: visual
 execute:
   echo: false
@@ -28,7 +29,7 @@ body {
 ::: hid
 ::: right
 ```{=html}
-<img src="nycb-logo-dark.jpeg" alt="New York City Ballet Official logo" style="
+<img src="www/nycb-logo-dark.jpeg" alt="New York City Ballet Official logo" style="
     width: 55mm;
 "/>
 ```
@@ -375,10 +376,5 @@ t
 ```
 :::
 
-<p class="footnote">Photographs and NYCB Logo are sourced from New York City Ballet's official website, https://www.nycballet.com/. Choreography performed and dates sourced from New York City Ballet Archive.<br>As noted on New York City Ballet's official website: 'The photographs depict choreography copyrighted by the individual choreographers. Choreography by George Balanchine © The George Balanchine Trust. “New York City Ballet” and the block letter logo are registered trademarks of New York City Ballet, Inc.'<br><br>Code and data here --- webpage created by @kkakey</p>
-
-```{r notes}
-### table
-# piece length (fix ordering so it is numeric)
-```
+<p class="footnote">This site is unofficial and unaffiliated with New York City Ballet. Photographs are sourced from New York City Ballet's official website, https://www.nycballet.com/, and the NYCB block letter logo are registered trademark of New York City Ballet, Inc.<br><br>Code and data [here](https://github.com/kkakey/nycb-75th-season) --- webpage created by @kkakey</p>
 
