@@ -1,0 +1,120 @@
+/* update bootstrap CSS so table can be wider */
+.Reactable.ReactTable.table.reactable-1i3kzw9.rt-compact {
+  width:1250px !important;
+  margin-left: -200px;
+}
+
+.cell-output-display:not(.no-overflow-x),.knitsql-table:not(.no-overflow-x) {
+    overflow-x: unset !important;
+}
+/* */
+
+
+.grid {
+  width:1200 !important;
+}
+
+.oi-ec050e-input {
+  background: black;
+  border-radius: 50px;
+  flex: 1;  
+  padding: 5px;
+}
+
+/* Changes font color to black in Repertory dropdown */
+.oi-3a86ea select {
+  color: black !important;
+}
+
+.oi-3a86ea label {
+  flex-shrink: 1 !important;
+}
+
+.tab-content {
+  border-left: None;
+  border-right: None;
+  border-bottom: None;
+}
+
+.nav-tabs.nav-link.active {
+  color: white;
+  background-color: black;
+  border-color: black;
+}
+
+.nav-link {
+  color: white;
+}
+
+.nav-link:hover {
+    color: #121212;
+}
+
+.table {
+  border-radius: 50px;
+}
+
+/* row hover color */
+.ReactTable .rt-tr:hover .rt-td {
+    background: #363845
+}
+
+.right {
+  float: right;
+  right: 0px;
+  top: 0px;
+  width: 55mm;
+  height: 55mm;
+}
+
+.rt-search.reactable-8dii1e {
+  margin: 10px;
+  margin-right: 50px;
+}
+
+.hid {
+    transition: all 3s;
+    opacity: 0;
+    filter: blur(5px);
+    transform: translateY(200px);
+}
+
+.show {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+}
+
+.rt-tr-details {
+  inline-size: 400px;
+  overflow-wrap: break-word;
+  text-align: center;
+}
+
+.fade-out {
+    background: rgba(0,0,0,0)
+}
+
+.fadein {
+  opacity: 0;
+  animation: fadeIn 3s ease-out forwards;
+  display:inline-block;
+}
+
+@keyframes fadeIn{
+  to{
+    opacity: 1;
+  }
+}
+
+.label_rep {
+  padding-top: 10px;
+  margin-bottom: -1px;
+}
+
+.footnote {
+  font-size: 11px;
+  text-align: right;
+  margin-bottom: -40px;
+  margin-top: 50px;
+}
