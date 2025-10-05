@@ -25,7 +25,8 @@ body {
 }
 </style>
 ```
-::: hid
+
+:::: hid
 ::: right
 ```{=html}
 <img src="www/nycb-logo-dark.jpeg" alt="New York City Ballet Official logo" style="
@@ -46,10 +47,11 @@ New York City Ballet's 75th Season
     padding-bottom: 5px;
 ">
 ```
+
 2023-2024
 
 </h2>
-:::
+::::
 
 <br>
 
@@ -60,7 +62,7 @@ New York City Ballet---the largest and one of the most renowned ballet companies
 
 <br> **History**
 
-Founded in 1948 by Georgian-American choreographer [George Balanchine](https://www.nycballet.com/discover/our-history/george-balanchine/) and [Lincoln Kirstein](https://www.nycballet.com/discover/our-history/lincoln-kirstein-1907-1996/), a cultural figure and businessman, the company quickly become known for its "athletic and contemporary" repertory style and its exceptional dancers[^1^](https://www.nycballet.com/about-us#:\~:text=New%20York%20City%20Ballet%20is,its%20athletic%20and%20contemporary%20style.). Balanchine and [Jerome Robbins](https://www.nycballet.com/discover/our-history/jerome-robbins/), whom Balanchine invited to serve as Assistant Artistic Director, went on to create dozens of choreographic works for the company over the span of thirty years and each respectively became renowned as choreographic geniuses[^2^](https://www.cbsnews.com/news/the-genius-of-balanchine-a-visual-breakdown/) [^3^](https://time.com/archive/6733288/a-made-in-the-u-s-a-genius-jerome-robbins-master-choreographer/) Their pieces continue to be iconic staples of the company, comprising the majority of the company's active repertory [^4^](https://www.nycballet.com/discover/our-history/).
+Founded in 1948 by Georgian-American choreographer [George Balanchine](https://www.nycballet.com/discover/our-history/george-balanchine/) and [Lincoln Kirstein](https://www.nycballet.com/discover/our-history/lincoln-kirstein-1907-1996/), a cultural figure and businessman, the company quickly become known for its "athletic and contemporary" repertory style and its exceptional dancers^[1](https://www.nycballet.com/about-us#:~:text=New%20York%20City%20Ballet%20is,its%20athletic%20and%20contemporary%20style.)^. Balanchine and [Jerome Robbins](https://www.nycballet.com/discover/our-history/jerome-robbins/), whom Balanchine invited to serve as Assistant Artistic Director, went on to create dozens of choreographic works for the company over the span of thirty years and each respectively became renowned as choreographic geniuses^[2](https://www.cbsnews.com/news/the-genius-of-balanchine-a-visual-breakdown/)^ ^[3](https://time.com/archive/6733288/a-made-in-the-u-s-a-genius-jerome-robbins-master-choreographer/)^ Their pieces continue to be iconic staples of the company, comprising the majority of the company's active repertory ^[4](https://www.nycballet.com/discover/our-history/)^.
 
 **75th Anniversary**
 
@@ -73,7 +75,7 @@ This included four World Premieres:
 -   "Underneath There is Light" (Amy Hall Garner - first piece for NYCB)
 -   "Concerto for Two Pianos" (Tiler Peck - first piece for NYCB).
 
-As Balanchine said: "I don't have a past. I have a continuous present. The past is part of the present, just as the future is. We exist in time."[^5^](https://playbill.com/article/how-new-york-city-ballet-is-celebrating-its-75th-anniversary)
+As Balanchine said: "I don't have a past. I have a continuous present. The past is part of the present, just as the future is. We exist in time."^[5](https://playbill.com/article/how-new-york-city-ballet-is-celebrating-its-75th-anniversary)^
 
 </details>
 
@@ -171,7 +173,8 @@ expand_dets <-
     Composer = format_string(`music by`),
     Length = format(lubridate::parse_date_time(ifelse(!grepl('H', length), paste('0H', length), paste0('0', length)), 'HMS'), '%H hr %M min'),
     num_dancers,
-    Premiere = format(lubridate::mdy(premiere_date), "%b %d, %Y"),
+    # Premiere = format(lubridate::mdy(premiere_date), "%b %d, %Y"),
+    Premiere = lubridate::mdy(premiere_date),
     premiere_place,
     `original cast` = format_string(`original cast`),
     Costumes = costumes,
@@ -188,10 +191,10 @@ expand_dets <-
          photo_url, Description, link)
 ```
 
-::: panel-tabset
+:::::: panel-tabset
 ## Preview
 
-::: grid
+::::: grid
 ::: g-col-4
 ```{ojs preview-description}
 html`<br><br>
@@ -244,7 +247,7 @@ photo = data.find(song => song.Repertory === repDropdown).photo_url
 }
 ```
 :::
-:::
+:::::
 
 ## Table
 
@@ -320,6 +323,7 @@ t <- reactable(
       name = "Performance Dates", 
       minWidth=140, 
       align = "center", 
+      format = colFormat(date = TRUE),
       details = function(index) {
         dates <- 
           expand_dets %>% 
@@ -354,7 +358,8 @@ t <- reactable(
                                         `original cast` = colDef(minWidth = 420, name = 'Original Cast', html = TRUE)
                                         ))
         htmltools::div(style = list(`margin-left` = "250px"), tbl)
-      }
+      },
+      format = colFormat(date = TRUE, separators = TRUE, locales = "en-US")
     ),
     Set = colDef(
       minWidth=60, 
@@ -414,6 +419,10 @@ hidden_elements.forEach(el => {
 ```{r show-table}
 t
 ```
-:::
+::::::
 
-<p class="footnote">This site is unofficial and unaffiliated with New York City Ballet.<br>Photographs are sourced from New York City Ballet's official website, https://www.nycballet.com/<br>and the NYCB block letter logo is registered trademark of New York City Ballet, Inc.<br><br>Code and data [here](https://github.com/kkakey/nycb-75th-season) --- webpage created by @kkakey</p>
+<p class="footnote">
+
+This site is unofficial and unaffiliated with New York City Ballet.<br>Photographs are sourced from New York City Ballet's official website, https://www.nycballet.com/<br>and the NYCB block letter logo is registered trademark of New York City Ballet, Inc.<br><br>Code and data [here](https://github.com/kkakey/nycb-75th-season) --- webpage created by @kkakey
+
+</p>
